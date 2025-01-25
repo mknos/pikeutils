@@ -444,10 +444,6 @@ int writebuf(string arg, int appendmode) {
 }
 
 int quitme() {
-    if (naddr != 0) {
-        alert("invalid address");
-        return 0;
-    }
     exit(0); // err-exit
 }
 
@@ -482,6 +478,8 @@ int copyover(string arg, int delete) {
     if (strlen(arg) > 0) {
         naddr = 0;
         string remain = getaddr(arg);
+        if (!stringp(remain))
+            return 0;
         if (strlen(remain) > 0) {
             alert("invalid command suffix");
             return 0;
@@ -501,6 +499,8 @@ int copyover(string arg, int delete) {
         lines = lines[0..i] + lines[j..];
     }
     curln = target + count;
+    if (curln > maxline())
+        curln = maxline();
     return 1;
 }
 
@@ -579,34 +579,39 @@ int substitute(string cmd) {
 string getaddr(string cmd) {
     if (strlen(cmd) == 0)
         return cmd;
-    int n = -1;
+    int n = 0;
+    int found = 0;
     if (cmd[0] == '.') {
         n = curln;
+        found = 1;
         cmd = cmd[1..];
     } else if (cmd[0] == '$') {
         n = maxline();
+        found = 1;
         cmd = cmd[1..];
     }
-    if (n == -1 && strlen(cmd) > 1) {
+    if (!found && strlen(cmd) > 1) {
         if (cmd[0] == '\'') {
             if (cmd[1] < 'a' || cmd[1] > 'z') {
                 alert("invalid mark character");
-                return cmd;
+                return 0;
             }
             string lc = cmd[1..1];
             if (!marks[lc]) {
                 alert("invalid address");
-                return cmd;
+                return 0;
             }
             n = marks[lc];
+            found = 1;
             cmd = cmd[2..];
         }
     }
-    if (n == -1) {
+    if (!found) {
         Regexp re = Regexp("^([0-9]+)");
         array(string) cap = re.split(cmd);
         if (cap) {
             n = (int)cap[0];
+            found = 1;
             int len = strlen(cap[0]);
             cmd = cmd[len..];
         }
@@ -620,8 +625,10 @@ string getaddr(string cmd) {
             int offset = (int)cap[1];
             if (cap[0] == "-")
                 offset = -offset;
-            if (n == -1)
+            if (!found) {
                 n = curln;
+                found = 1;
+            }
             n += offset;
             int len = strlen(cap[0]) + strlen(cap[1]);
             cmd = cmd[len..];
@@ -631,8 +638,10 @@ string getaddr(string cmd) {
     Regexp re = Regexp("^([\+\-]+)");
     cap = re.split(cmd);
     if (cap) {
-        if (n == -1)
+        if (!found) {
             n = curln;
+            found = 1;
+        }
         foreach (cap[0] / 1, string c) {
             if (c == "-")
                 n--;
@@ -643,14 +652,18 @@ string getaddr(string cmd) {
         cmd = cmd[len..];
     }
 
-    if (n != -1) {
+    if (found) {
+        if (n < 0 || n > maxline()) {
+            alert("invalid address");
+            return 0;
+        }
         if (naddr == 0)
             addr1 = n;
         else if (naddr == 1)
             addr2 = n;
         else {
             alert("too many addresses");
-            return cmd;
+            return 0;
         }
         naddr++;
     }
@@ -674,12 +687,8 @@ int commandline(string cmd) {
     naddr = addr1 = addr2 = 0;
     cmd = skip_blank(cmd);
     cmd = getaddr(cmd);
-    if (naddr == 1) {
-        if (addr1 > maxline()) {
-            alert("invalid address");
-            return 0;
-        }
-    }
+    if (!stringp(cmd))
+        return 0;
     if (strlen(cmd) > 0 && (cmd[0] == ',' || cmd[0] == ';' || cmd[0] == '%')) {
         if (naddr == 1 && cmd[0] == '%') {
             alert("unknown command");
@@ -694,13 +703,15 @@ int commandline(string cmd) {
                 addr1 = 1; // ,N and %N
         }
         cmd = getaddr(cmd[1..]);
+        if (!stringp(cmd))
+            return 0;
         if (infer1 && naddr == 1) {
             naddr = 2;
             addr2 = maxline();
         }
     }
     if (naddr == 2) {
-        if (addr2 > maxline() || addr1 > addr2) {
+        if (addr1 > addr2) {
             alert("invalid address");
             return 0;
         }
@@ -758,6 +769,10 @@ int commandline(string cmd) {
         break;
     case "Q":
     case "q":
+        if (naddr != 0) {
+            alert("invalid address");
+            return 0;
+        }
         if (strlen(skip_blank(cmd)) > 0) {
             alert("invalid command suffix");
             return 0;
