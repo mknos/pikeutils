@@ -576,6 +576,15 @@ int substitute(string cmd) {
     return 1;
 }
 
+int shellout(string cmd) {
+    if (strlen(cmd) > 0) {
+        string res = Process.popen(cmd);
+        write(res);
+    }
+    write("!\n");
+    return 1;
+}
+
 string getaddr(string cmd) {
     if (strlen(cmd) == 0)
         return cmd;
@@ -851,6 +860,13 @@ int commandline(string cmd) {
     case "n":
     case "p":
         reveal(cmd, command == "n", command == "l");
+        break;
+    case "!":
+        if (naddr != 0) {
+            alert("unexpected address");
+            return 0;
+        }
+        shellout(cmd);
         break;
     default:
         alert("unknown command");
