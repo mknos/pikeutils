@@ -87,10 +87,7 @@ int main(int argc, array(string) argv) {
                 wordlet[j] = " ";
             }
  
-        string tmpword = "";
-        for (int j = 0; j < 5; j++)
-            tmpword += wordlet[j];
-
+        string tmpword = Array.sum(wordlet);
         array(int) partly = ({ 0 }) * 5;
         for (int j = 0; j < 5; j++) {
             if (exactly[j])
@@ -100,10 +97,7 @@ int main(int argc, array(string) argv) {
                continue;
             partly[j] = 1;
             wordlet[k] = " ";
-
-            tmpword = "";
-            for (int l = 0; l < 5; l++)
-                tmpword += wordlet[l];
+            tmpword = Array.sum(wordlet);
         }
 
         write("\t");
