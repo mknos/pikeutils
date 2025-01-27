@@ -145,34 +145,50 @@ int readin(string arg) {
         i = addr2;
     }
 
-    if (bad_filename(arg)) {
-        alert("invalid filename");
-        return 0;
-    }
-    if (!access(arg)) {
-        alert("cannot open input file");
-        return 0;
-    }
-    Stdio.FILE f = Stdio.FILE(arg);
-    if (!f) {
-        alert("cannot open input file");
-        return 0;
-    }
-
-    string line;
     int chars = 0;
     array(string) tmp = ({ });
-    do {
-        line = f->gets();
-        if (line) {
-            tmp += ({ line });
-            chars += sizeof(line) + 1; // count nl
+    if (arg[0] == '!') {
+        string res = Process.popen(arg[1..]);
+        int len = strlen(res);
+        chars += len;
+        if (len != 0) {
+            tmp = res / "\n";
+            // handle "\n" --> "","" split
+            if (sizeof(tmp) > 1 && tmp[-1] == "") {
+                int j = sizeof(tmp) - 2;
+                tmp = tmp[..j];
+            }
         }
-    } while (line);
-    f->close();
+    } else {
+        if (bad_filename(arg)) {
+            alert("invalid filename");
+            return 0;
+        }
+        if (!access(arg)) {
+            alert("cannot open input file");
+            return 0;
+        }
+        Stdio.FILE f = Stdio.FILE(arg);
+        if (!f) {
+            alert("cannot open input file");
+            return 0;
+        }
 
-    lines = lines[0..i] + tmp + lines[(i+1)..];
-    curln = i + sizeof(tmp);
+        string line;
+        do {
+            line = f->gets();
+            if (line) {
+                tmp += ({ line });
+                chars += sizeof(line) + 1; // count nl
+            }
+        } while (line);
+        f->close();
+    }
+    if (sizeof(tmp) != 0) {
+        int j = i + 1;
+        lines = lines[0..i] + tmp + lines[j..];
+        curln = i + sizeof(tmp);
+    }
     if (!scripted)
         write("%d\n", chars);
     return 1;
