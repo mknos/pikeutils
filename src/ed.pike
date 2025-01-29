@@ -505,6 +505,11 @@ int copyover(string arg, int delete) {
     }
     if (target == -1)
         target = curln;
+    if (delete && target >= start && target < end) {
+        alert("invalid destination"); // m forbids overlap
+        return 0;
+    }
+
     lines = lines[0..target]
         + lines[start..end]  + lines[(target+1)..];
     int count = end - start + 1;
