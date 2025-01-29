@@ -302,20 +302,32 @@ int nullcmd() {
 }
 
 int joinup() {
-    if (naddr == 0)
-        return 1;
-    if (addr1 == 0) { // 0j simpkins
+    int start, end;
+    if (naddr > 0 && addr1 == 0) {
         alert("invalid address");
         return 0;
     }
-    if (naddr == 1)
+    switch (naddr) {
+    case 0:
+        if (curln == maxline()) {
+            alert("invalid address");
+            return 0;
+        }
+        start = curln;
+        end = curln + 1;
+        break;
+    case 1:
         return 1;
-
-    string line = "";
-    foreach (lines[addr1..addr2], string s)
-        line += s;
-    int i = addr1 - 1;
-    int j = addr2 + 1;
+    case 2:
+        if (addr1 == addr2)
+            return 1;
+        start = addr1;
+        end = addr2;
+        break;
+    }
+    string line = Array.sum(lines[start..end]);
+    int i = start - 1;
+    int j = end + 1;
     lines = lines[0..i] + ({ line }) + lines[j..];
     curln = addr1;
     return 1;
