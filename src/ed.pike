@@ -282,7 +282,7 @@ int deltext() {
     array(string) high = lines[highstart..highend];
 
     lines = low + high;
-    curln = start;
+    curln = min(start, maxline()); // start may be gone
     return 1;
 }
 
