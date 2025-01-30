@@ -422,12 +422,16 @@ int writebuf(string arg, int appendmode) {
         return 0;
     }
     arg = skip_blank(arg);
+    int do_pipe = 0;
     if (strlen(arg) == 0) {
         if (!curfile) {
             alert("no current filename");
             return 0;
         }
         arg = curfile;
+    } else if (arg[0] == '!') {
+        do_pipe = 1;
+        arg = arg[1..];
     }
 
     int start, end;
@@ -448,15 +452,24 @@ int writebuf(string arg, int appendmode) {
         alert("invalid address");
         return 0;
     }
-    if (bad_filename(arg)) {
-        alert("invalid filename");
-        return 0;
-    }
-    string modestr = appendmode ? "caw" : "ctw";
-    Stdio.FILE f = Stdio.FILE(arg, modestr);
-    if (!f) {
-        alert("cannot open output file");
-        return 0;
+    Stdio.FILE f;
+    if (do_pipe) {
+        f = Process.popen(arg, "w");
+        if (!f) {
+            alert("cannot open pipe");
+            return 0;
+        }
+    } else {
+        if (bad_filename(arg)) {
+            alert("invalid filename");
+            return 0;
+        }
+        string modestr = appendmode ? "caw" : "ctw";
+        f = Stdio.FILE(arg, modestr);
+        if (!f) {
+            alert("cannot open output file");
+            return 0;
+        }
     }
     int chars = 0;
     for (int i = start; i <= end; i++) {
