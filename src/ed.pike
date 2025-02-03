@@ -111,6 +111,7 @@ int editfile(string arg) {
     } while (line);
     f->close();
 
+    modified = 0;
     curln = maxline();
     if (!scripted)
         write("%d\n", chars);
@@ -190,6 +191,7 @@ int readin(string arg) {
         int j = i + 1;
         lines = lines[0..i] + tmp + lines[j..];
         curln = i + sizeof(tmp);
+        modified = 1;
     }
     if (!scripted)
         write("%d\n", chars);
@@ -254,6 +256,7 @@ int addtext(int insert) {
     } while (line);
 
     lines = lines[0..i] + tmp + lines[(i+1)..];
+    modified = 1;
     curln = i + count;
     return 1;
 }
@@ -285,6 +288,7 @@ int deltext() {
 
     lines = low + high;
     curln = min(start, maxline()); // start may be gone
+    modified = 1;
     return 1;
 }
 
@@ -332,6 +336,7 @@ int joinup() {
     int j = end + 1;
     lines = lines[0..i] + ({ line }) + lines[j..];
     curln = addr1;
+    modified = 1;
     return 1;
 }
 
@@ -479,6 +484,10 @@ int writebuf(string arg, int appendmode) {
         chars += strlen(lines[i]) + 1;
     }
     f->close();
+
+    int written = end - start + 1;
+    if (!do_pipe && written == sizeof(lines) - 1)
+        modified = 0;
     if (!scripted)
         write("%d\n", chars);
     if (quitmode)
@@ -547,6 +556,7 @@ int copyover(string arg, int delete) {
         lines = lines[0..i] + lines[j..];
     }
     curln = target + count;
+    modified = 1;
     if (curln > maxline())
         curln = maxline();
     return 1;
@@ -620,6 +630,7 @@ int substitute(string cmd) {
     for (i = start; i <= end; i++) {
         string rep = re.replace(lines[i], part2);
         lines[i] = rep;
+        modified = 1;
     }
     return 1;
 }
@@ -826,6 +837,11 @@ int commandline(string cmd) {
         break;
     case "Q":
     case "q":
+        if (!scripted && modified && command == "q") {
+            alert("buffer modified");
+            modified = 0;
+            return 0;
+        }
         if (naddr != 0) {
             alert("invalid address");
             return 0;
@@ -895,6 +911,11 @@ int commandline(string cmd) {
         break;
     case "E":
     case "e":
+        if (!scripted && modified && command == "e") {
+            alert("buffer modified");
+            modified = 0;
+            return 0;
+        }
         if (naddr != 0) {
             alert("unexpected address");
             return 0;
