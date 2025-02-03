@@ -924,8 +924,40 @@ int commandline(string cmd) {
 }
 
 int main(int argc, array(string) argv) {
-    if (argc > 1)
-        editfile(" " + argv[1]);
+    for (int i = 1; i < argc; i++) {
+        if (!stringp(argv[i]))
+            continue;
+        string a = argv[i];
+        if (a[0] != '-')
+            break;
+        if (a == "--") {
+            argv[i] = 0;
+            break;
+        }
+        if (a == "-p") {
+            if (i + 1 == argc)
+                usage();
+            promptmode = 1;
+            prompt = argv[i + 1];
+            argv[i + 1] = 0;
+        } else if (a == "-s")
+            scripted = 1;
+        else {
+            werror("unexpected option: '%s'\n", a);
+            usage();
+        }
+        argv[i] = 0;
+    }
+    string file = 0;
+    foreach (argv[1..], string arg) {
+        if (!stringp(arg))
+            continue;
+        if (stringp(file))
+            usage();
+        file = arg;
+    }
+    if (stringp(file))
+        editfile(" " + file);
 
     string cmd;
     do {
@@ -935,4 +967,9 @@ int main(int argc, array(string) argv) {
         commandline(cmd);
     } while (cmd);
     return 0;
+}
+
+void usage() {
+    werror("usage: ed [-s] [-p prompt] [file]\n");
+    exit(1);
 }
