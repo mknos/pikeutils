@@ -49,6 +49,7 @@ int main(int argc, array(string) argv) {
             exit(1);
         }
         Stdio.FILE f = Stdio.FILE(filename);
+        write("%s:\n", filename);
         int filematch = 0;
         int c;
         while ((c = f->getchar()) != -1) {
@@ -60,8 +61,6 @@ int main(int argc, array(string) argv) {
             if (strlen(id) == 0)
                 continue;
             filematch++;
-            if (filematch == 1)
-                write("%s:\n", filename);
             write("\t%s\n", id);
             if (sflag && filematch == 1)
                 break;
