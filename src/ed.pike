@@ -68,29 +68,40 @@ int editfile(string arg) {
         return 0;
     }
     arg = skip_blank(arg);
+    int do_pipe = 0;
     if (strlen(arg) == 0) {
         if (!curfile) {
             alert("no current filename");
             return 0;
         }
         arg = curfile;
+    } else if (arg[0] == '!') {
+        do_pipe = 1;
+        arg = arg[1..];
     }
 
-    if (bad_filename(arg)) {
-        alert("invalid filename");
-        return 0;
-    }
-    if (!access(arg)) {
-        alert("cannot open input file");
-        return 0;
-    }
-    Stdio.FILE f = Stdio.FILE(arg);
-    if (!f) {
-        alert("cannot open input file");
-        return 0;
+    Stdio.FILE f;
+    if (do_pipe) {
+        f = Process.popen(arg, "r");
+    } else {
+        if (bad_filename(arg)) {
+            alert("invalid filename");
+            return 0;
+        }
+        if (!access(arg)) {
+            alert("cannot open input file");
+            return 0;
+        }
+        f = Stdio.FILE(arg);
+        if (!f) {
+            alert("cannot open input file");
+            return 0;
+        }
+        curfile = arg;
     }
     string line;
     int chars = 0;
+    lines = ({ 0 });
     do {
         line = f->gets();
         if (line) {
@@ -101,7 +112,6 @@ int editfile(string arg) {
     f->close();
 
     curln = maxline();
-    curfile = arg;
     if (!scripted)
         write("%d\n", chars);
     return 1;
