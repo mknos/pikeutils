@@ -6,6 +6,7 @@ int MATCH   = 0;
 int NOMATCH = 1;
 int ERROR   = 2;
 
+int opt_A = 0;
 int opt_c = 0;
 int opt_F = 0;
 int opt_i = 0;
@@ -15,13 +16,15 @@ int opt_q = 0;
 int opt_v = 0;
 
 void usage() {
-    werror("usage: grep [-cFHhilnqsv] [-e pattern] [pattern] [file ...]\n");
+    werror("usage: grep [-cFHhilnqsv] [-A num] [-e pattern] " +
+        "[pattern] [file ...]\n");
     exit(ERROR);
 }
 
 int matchfile(Stdio.FILE f, string name, array pats) {
     int count = 0;
     int lineno = 0;
+    int i_after = 0;
     int showmatch = !opt_c && !opt_l && !opt_q;
     int shortcut = opt_q || opt_l; // terminate on 1st match
     int gotmatch;
@@ -50,6 +53,16 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                 }
                 if (shortcut)
                     break;
+                i_after = opt_A;
+            } else if (i_after) {
+                if (stringp(name))
+                    write("%s:", name);
+                if (opt_n)
+                    write("%d-", lineno);
+                write("%s\n", line);
+                i_after--;
+                if (!i_after)
+                    write("--\n");
             }
         }
     } else {
@@ -75,6 +88,16 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                 }
                 if (shortcut)
                     break;
+                i_after = opt_A;
+            } else if (i_after) {
+                if (stringp(name))
+                    write("%s:", name);
+                if (opt_n)
+                    write("%d-", lineno);
+                write("%s\n", line);
+                i_after--;
+                if (!i_after)
+                    write("--\n");
             }
         }
     }
@@ -89,6 +112,7 @@ int main(int argc, array(string) argv) {
     int opt_s = 0;
     int header = 0;
 
+    Regexp num_re = Regexp("^[0-9]+$");
     for (int i = 1; i < argc; i++) {
         if (!stringp(argv[i]))
             continue;
@@ -102,6 +126,15 @@ int main(int argc, array(string) argv) {
         if (argv[i] == "-F") {
             opt_F = 1;
             argv[i] = 0;
+        } else if (argv[i] == "-A") {
+            if (i + 1 == argc)
+                usage();
+            if (!num_re.match(argv[i + 1])) {
+                werror("invalid -A number\n");
+                usage();
+            }
+            opt_A = (int)argv[i + 1];
+            argv[i + 1] = argv[i] = 0;
         } else if (argv[i] == "-H") {
             opt_H = 1;
             opt_h = 0;
@@ -118,17 +151,18 @@ int main(int argc, array(string) argv) {
             argv[i] = 0;
         } else if (argv[i] == "-l") {
             opt_l = 1;
-            opt_c = 0;
+            opt_A = opt_c = 0;
             argv[i] = 0;
         } else if (argv[i] == "-q") {
             opt_q = 1;
-            opt_c = opt_l = 0;
+            opt_A = opt_c = opt_l = 0;
             argv[i] = 0;
         } else if (argv[i] == "-v") {
             opt_v = 1;
             argv[i] = 0;
         } else if (argv[i] == "-c") {
             opt_c = 1;
+            opt_A = 0;
             argv[i] = 0;
         } else if (argv[i] == "-s") {
             opt_s = 1;
@@ -137,8 +171,7 @@ int main(int argc, array(string) argv) {
             if (i + 1 == argc)
                 usage();
             patterns += ({ argv[i + 1] });
-            argv[i + 1] = 0;
-            argv[i] = 0;
+            argv[i + 1] = argv[i] = 0;
         } else {
             werror("invalid option: '%s'\n", argv[i]);
             usage();
