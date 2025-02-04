@@ -15,7 +15,7 @@ int opt_q = 0;
 int opt_v = 0;
 
 void usage() {
-    werror("usage: grep [-cFHhilnqv] [-e pattern] [pattern] [file ...]\n");
+    werror("usage: grep [-cFHhilnqsv] [-e pattern] [pattern] [file ...]\n");
     exit(ERROR);
 }
 
@@ -94,6 +94,7 @@ int main(int argc, array(string) argv) {
     array(string) files = ({ });
     int opt_H = 0;
     int opt_h = 0;
+    int opt_s = 0;
     int header = 0;
 
     for (int i = 1; i < argc; i++) {
@@ -137,6 +138,9 @@ int main(int argc, array(string) argv) {
         } else if (argv[i] == "-c") {
             opt_c = 1;
             argv[i] = 0;
+        } else if (argv[i] == "-s") {
+            opt_s = 1;
+            argv[i] = 0;
         } else if (argv[i] == "-e") {
             if (i + 1 == argc)
                 usage();
@@ -171,12 +175,24 @@ int main(int argc, array(string) argv) {
     int rc = NOMATCH;
     foreach (files, string filename) {
         if (!access(filename, "r")) {
-            werror("grep: '%s': %s\n", filename, strerror(errno()));
+            if (!opt_s)
+                werror("grep: '%s': %s\n", filename, strerror(errno()));
+            rc = ERROR;
             continue;
         }
         Stdio.FILE f = Stdio.FILE(filename);
         if (!f) {
-            werror("grep: '%s': %s\n", filename, strerror(errno()));
+            if (!opt_s)
+                werror("grep: '%s': %s\n", filename, strerror(errno()));
+            rc = ERROR;
+            continue;
+        }
+        mixed st = f->stat();
+        if (st->isdir) {
+            if (!opt_s)
+                werror("grep: '%s': is a directory\n", filename);
+            f->close();
+            rc = ERROR;
             continue;
         }
         int c = matchfile(f, header ? filename : 0, patterns);
