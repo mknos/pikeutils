@@ -19,7 +19,7 @@ void usage() {
     exit(ERROR);
 }
 
-int matchfile(Stdio.FILE f, string name, array(string) pats) {
+int matchfile(Stdio.FILE f, string name, array pats) {
     int count = 0;
     int lineno = 0;
     int showmatch = !opt_c && !opt_l && !opt_q;
@@ -27,9 +27,6 @@ int matchfile(Stdio.FILE f, string name, array(string) pats) {
     int gotmatch;
     string line;
 
-    if (opt_i)
-        for (int i = 0; i < sizeof(pats); i++)
-            pats[i] = upper_case(pats[i]);
     if (opt_F) {
         while ((line = f->gets())) {
             lineno++;
@@ -56,15 +53,10 @@ int matchfile(Stdio.FILE f, string name, array(string) pats) {
             }
         }
     } else {
-        // this doesn't need to happen per-file
-        array(Regexp) patsre = ({ });
-        foreach (pats, string pattern) {
-            patsre += ({ Regexp(pattern) });
-        }
         while ((line = f->gets())) {
             lineno++;
             gotmatch = 0;
-            foreach (patsre, Regexp re) {
+            foreach (pats, Regexp re) {
                 if (re->match(opt_i ? upper_case(line) : line)) {
                     gotmatch = 1;
                     break;
@@ -90,8 +82,8 @@ int matchfile(Stdio.FILE f, string name, array(string) pats) {
 }
 
 int main(int argc, array(string) argv) {
-    array(string) patterns = ({ });
     array(string) files = ({ });
+    array patterns = ({ });
     int opt_H = 0;
     int opt_h = 0;
     int opt_s = 0;
@@ -164,6 +156,12 @@ int main(int argc, array(string) argv) {
     }
     if (sizeof(patterns) == 0)
         usage();
+    if (opt_i)
+        for (int i = 0; i < sizeof(patterns); i++)
+            patterns[i] = upper_case(patterns[i]);
+    if (!opt_F)
+        for (int i = 0; i < sizeof(patterns); i++)
+            patterns[i] = Regexp(patterns[i]);
 
     foreach (argv[1..], string filename) {
         if (!stringp(filename))
