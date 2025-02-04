@@ -143,18 +143,7 @@ int readin(string arg) {
         }
         arg = curfile;
     }
-
-    int i;
-    switch (naddr) {
-    case 0:
-        i = maxline();
-        break;
-    case 1:
-        i = addr1;
-        break;
-    case 2:
-        i = addr2;
-    }
+    int i = select_one_addr(1);
 
     Stdio.FILE f;
     if (arg[0] == '!') {
@@ -240,7 +229,7 @@ int helpsay() {
 }
 
 int addtext(int insert) {
-    int i = select_one_addr();
+    int i = select_one_addr(0);
     if (insert && i > 0)
         i--;
 
@@ -293,7 +282,7 @@ int deltext() {
 }
 
 int nullcmd() {
-    int i = select_one_addr();
+    int i = select_one_addr(0);
     if (i == 0) {
         alert("invalid address");
         return 0;
@@ -390,14 +379,14 @@ int reveal(string arg, int shownum, int binmode) {
 }
 
 int listaddr() {
-    int i = select_one_addr();
+    int i = select_one_addr(1);
     write("%d\n", i);
     return 1;
 }
 
-int select_one_addr() {
+int select_one_addr(int lastaddr) {
     switch (naddr) {
-    case 0: return curln;
+    case 0: return lastaddr ? maxline() : curln;
     case 1: return addr1;
     case 2: return addr2;
     }
@@ -409,7 +398,7 @@ int setmark(string letter) {
         alert("invalid command suffix");
         return 0;
     }
-    int i = select_one_addr();
+    int i = select_one_addr(0);
     if (i == 0) {
         alert("invalid address");
         return 0;
