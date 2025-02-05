@@ -13,13 +13,14 @@ int opt_F = 0;
 int opt_i = 0;
 int opt_L = 0;
 int opt_l = 0;
+int opt_m = 0;
 int opt_n = 0;
 int opt_q = 0;
 int opt_v = 0;
 
 void usage() {
     werror("usage: grep [-cFHhilnqsv] [-A num] [-B num] [-C num] " +
-        "[-e pattern] [pattern] [file ...]\n");
+        "[-m num] [-e pattern] [pattern] [file ...]\n");
     exit(ERROR);
 }
 
@@ -72,6 +73,8 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                 if (shortcut)
                     break;
                 i_after = opt_A;
+                if (!opt_A && opt_m == count)
+                    break; // final match, no trailing context
             } else if (i_after) {
                 if (stringp(name))
                     write("%s:", name);
@@ -79,8 +82,11 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                     write("%d-", lineno);
                 write("%s\n", line);
                 i_after--;
-                if (!i_after)
+                if (!i_after) {
                     write("--\n");
+                    if (opt_m == count)
+                        break; // final match with context
+                }
             } else if (opt_B) {
                 lnprefix += ({ line });
                 if (sizeof(lnprefix) > opt_B)
@@ -126,6 +132,8 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                 if (shortcut)
                     break;
                 i_after = opt_A;
+                if (!opt_A && opt_m == count)
+                    break;
             } else if (i_after) {
                 if (stringp(name))
                     write("%s:", name);
@@ -133,8 +141,11 @@ int matchfile(Stdio.FILE f, string name, array pats) {
                     write("%d-", lineno);
                 write("%s\n", line);
                 i_after--;
-                if (!i_after)
+                if (!i_after) {
                     write("--\n");
+                    if (opt_m == count)
+                        break;
+                }
             } else if (opt_B) {
                 lnprefix += ({ line });
                 if (sizeof(lnprefix) > opt_B)
@@ -193,6 +204,15 @@ int main(int argc, array(string) argv) {
                 usage();
             }
             opt_A = opt_B = (int)argv[i + 1];
+            argv[i + 1] = argv[i] = 0;
+        } else if (argv[i] == "-m") {
+            if (i + 1 == argc)
+                usage();
+            if (!num_re.match(argv[i + 1])) {
+                werror("invalid -m number\n");
+                usage();
+            }
+            opt_m = (int)argv[i + 1];
             argv[i + 1] = argv[i] = 0;
         } else if (argv[i] == "-H") {
             opt_H = 1;
