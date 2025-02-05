@@ -692,21 +692,24 @@ string getaddr(string cmd) {
         }
     } while (cap);
 
-    Regexp re = Regexp("^([\+\-]+)");
-    cap = re.split(cmd);
-    if (cap) {
+    // escaping ^ in Regexp as in [\^\-\+] had no effect
+    int offset = 0;
+    int i;
+    for (i = 0; i < strlen(cmd); i++) {
+        if (cmd[i] == '+')
+            offset++;
+        else if (cmd[i] == '-' || cmd[i] == '^')
+            offset--;
+        else
+            break;
+    }
+    if (i && offset != 0) {
         if (!found) {
             n = curln;
             found = 1;
         }
-        foreach (cap[0] / 1, string c) {
-            if (c == "-")
-                n--;
-            else
-                n++;
-        }
-        int len = strlen(cap[0]);
-        cmd = cmd[len..];
+        n += offset;
+        cmd = cmd[i..];
     }
 
     if (found) {
