@@ -11,6 +11,7 @@ int opt_B = 0;
 int opt_c = 0;
 int opt_F = 0;
 int opt_i = 0;
+int opt_L = 0;
 int opt_l = 0;
 int opt_n = 0;
 int opt_q = 0;
@@ -27,8 +28,8 @@ int matchfile(Stdio.FILE f, string name, array pats) {
     int count = 0;
     int lineno = 0;
     int i_after = 0;
-    int showmatch = !opt_c && !opt_l && !opt_q;
-    int shortcut = opt_q || opt_l; // terminate on 1st match
+    int showmatch = !opt_c && !opt_L && !opt_l && !opt_q;
+    int shortcut = opt_q || opt_L || opt_l; // terminate on 1st match
     int gotmatch;
     string line;
 
@@ -207,9 +208,13 @@ int main(int argc, array(string) argv) {
         } else if (argv[i] == "-i") {
             opt_i = 1;
             argv[i] = 0;
+        } else if (argv[i] == "-L") {
+            opt_L = 1;
+            opt_l = opt_A = opt_B = opt_c = 0;
+            argv[i] = 0;
         } else if (argv[i] == "-l") {
             opt_l = 1;
-            opt_A = opt_B = opt_c = 0;
+            opt_L = opt_A = opt_B = opt_c = 0;
             argv[i] = 0;
         } else if (argv[i] == "-q") {
             opt_q = 1;
@@ -292,6 +297,9 @@ int main(int argc, array(string) argv) {
                 break; // avoid searching next file on match
             if (opt_l)
                 write("%s\n", filename);
+        } else {
+            if (opt_L)
+                write("%s\n", filename);
         }
         if (opt_c) {
             if (header)
@@ -304,6 +312,9 @@ int main(int argc, array(string) argv) {
         if (c) {
             rc = MATCH;
             if (opt_l)
+                write("(stdin)\n");
+        } else {
+            if (opt_L)
                 write("(stdin)\n");
         }
         if (opt_c) {
