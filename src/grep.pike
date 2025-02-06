@@ -229,48 +229,75 @@ int main(int argc, array(string) argv) {
             continue;
         }
 
-        switch (arg) {
-        case "A":
-            if (i + 1 == argc)
-                usage();
-            if (!num_re.match(argv[i + 1])) {
+        string num;
+        switch (arg[0]) {
+        case 'A':
+            if (strlen(arg) > 1)
+                num = arg[1..];
+            else {
+                if (i + 1 == argc)
+                    usage();
+                num = argv[i + 1];
+                argv[i + 1] = 0;
+            }
+            if (!num_re.match(num)) {
                 werror("invalid -A number\n");
                 usage();
             }
-            opt_A = (int)argv[i + 1];
-            argv[i + 1] = argv[i] = 0;
+            opt_A = (int)num;
+            argv[i] = 0;
             break;
-        case "B":
-            if (i + 1 == argc)
-                usage();
-            if (!num_re.match(argv[i + 1])) {
+        case 'B':
+            if (strlen(arg) > 1)
+                num = arg[1..];
+            else {
+                if (i + 1 == argc)
+                    usage();
+                num = argv[i + 1];
+                argv[i + 1] = 0;
+            }
+            if (!num_re.match(num)) {
                 werror("invalid -B number\n");
                 usage();
             }
-            opt_B = (int)argv[i + 1];
-            argv[i + 1] = argv[i] = 0;
+            opt_B = (int)num;
+            argv[i] = 0;
             break;
-        case "C":
-            if (i + 1 == argc)
-                usage();
-            if (!num_re.match(argv[i + 1])) {
+        case 'C':
+            if (strlen(arg) > 1)
+                num = arg[1..];
+            else {
+                if (i + 1 == argc)
+                    usage();
+                num = argv[i + 1];
+                argv[i + 1] = 0;
+            }
+            if (!num_re.match(num)) {
                 werror("invalid -C number\n");
                 usage();
             }
-            opt_A = opt_B = (int)argv[i + 1];
-            argv[i + 1] = argv[i] = 0;
+            opt_A = opt_B = (int)num;
+            argv[i] = 0;
             break;
-        case "m":
-            if (i + 1 == argc)
-                usage();
-            if (!num_re.match(argv[i + 1])) {
+        case 'm':
+            if (strlen(arg) > 1)
+                num = arg[1..];
+            else {
+                if (i + 1 == argc)
+                    usage();
+                num = argv[i + 1];
+                argv[i + 1] = 0;
+            }
+            if (!num_re.match(num)) {
                 werror("invalid -m number\n");
                 usage();
             }
-            opt_m = (int)argv[i + 1];
-            argv[i + 1] = argv[i] = 0;
+            opt_m = (int)num;
+            argv[i] = 0;
             break;
-        case "e":
+        case 'e':
+            if (strlen(arg) > 1) // space required after -e
+                usage();
             if (i + 1 == argc)
                 usage();
             patterns += ({ argv[i + 1] });
