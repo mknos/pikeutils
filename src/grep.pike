@@ -19,7 +19,7 @@ int opt_q = 0;
 int opt_v = 0;
 
 void usage() {
-    werror("usage: grep [-cFHhilnqsv] [-A num] [-B num] [-C num] " +
+    werror("usage: grep [-cFHhiLlnqsv] [-A num] [-B num] [-C num] " +
         "[-m num] [-e pattern] [pattern] [file ...]\n");
     exit(ERROR);
 }
@@ -165,20 +165,72 @@ int main(int argc, array(string) argv) {
     int header = 0;
 
     Regexp num_re = Regexp("^[0-9]+$");
+    Regexp flags = Regexp("^[cFHhiLlnqsv]+$");
+
     for (int i = 1; i < argc; i++) {
         if (!stringp(argv[i]))
             continue;
-        if (argv[i] == "--") {
+        string arg = argv[i];
+        if (arg == "--") {
             argv[i] = 0;
             break;
         }
-        if (argv[i][0] != '-')
+        if (arg[0] != '-')
             break;
+        arg = arg[1..];
+        if (flags.match(arg)) {
+            foreach (arg / 1, string letter)
+                switch (letter) {
+                case "c":
+                    opt_c = 1;
+                    opt_A = opt_B = 0;
+                    break;
+                case "F":
+                    opt_F = 1;
+                    break;
+                case "H":
+                    opt_H = 1;
+                    opt_h = 0;
+                    break;
+                case "h":
+                    opt_h = 1;
+                    opt_H = 0;
+                    break;
+                case "i":
+                    opt_i = 1;
+                    break;
+                case "L":
+                    opt_L = 1;
+                    opt_l = opt_A = opt_B = opt_c = 0;
+                    break;
+                case "l":
+                    opt_l = 1;
+                    opt_L = opt_A = opt_B = opt_c = 0;
+                    break;
+                case "n":
+                    opt_n = 1;
+                    break;
+                case "q":
+                    opt_q = 1;
+                    opt_A = opt_B = opt_c = opt_l = 0;
+                    break;
+                case "s":
+                    opt_s = 1;
+                    break;
+                case "v":
+                    opt_v = 1;
+                    break;
+                default:
+                    werror("invalid option: -- '%s'\n", letter);
+                    usage();
+                }
 
-        if (argv[i] == "-F") {
-            opt_F = 1;
             argv[i] = 0;
-        } else if (argv[i] == "-A") {
+            continue;
+        }
+
+        switch (arg) {
+        case "A":
             if (i + 1 == argc)
                 usage();
             if (!num_re.match(argv[i + 1])) {
@@ -187,7 +239,8 @@ int main(int argc, array(string) argv) {
             }
             opt_A = (int)argv[i + 1];
             argv[i + 1] = argv[i] = 0;
-        } else if (argv[i] == "-B") {
+            break;
+        case "B":
             if (i + 1 == argc)
                 usage();
             if (!num_re.match(argv[i + 1])) {
@@ -196,7 +249,8 @@ int main(int argc, array(string) argv) {
             }
             opt_B = (int)argv[i + 1];
             argv[i + 1] = argv[i] = 0;
-        } else if (argv[i] == "-C") {
+            break;
+        case "C":
             if (i + 1 == argc)
                 usage();
             if (!num_re.match(argv[i + 1])) {
@@ -205,7 +259,8 @@ int main(int argc, array(string) argv) {
             }
             opt_A = opt_B = (int)argv[i + 1];
             argv[i + 1] = argv[i] = 0;
-        } else if (argv[i] == "-m") {
+            break;
+        case "m":
             if (i + 1 == argc)
                 usage();
             if (!num_re.match(argv[i + 1])) {
@@ -214,48 +269,14 @@ int main(int argc, array(string) argv) {
             }
             opt_m = (int)argv[i + 1];
             argv[i + 1] = argv[i] = 0;
-        } else if (argv[i] == "-H") {
-            opt_H = 1;
-            opt_h = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-h") {
-            opt_h = 1;
-            opt_H = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-n") {
-            opt_n = 1;
-            argv[i] = 0;
-        } else if (argv[i] == "-i") {
-            opt_i = 1;
-            argv[i] = 0;
-        } else if (argv[i] == "-L") {
-            opt_L = 1;
-            opt_l = opt_A = opt_B = opt_c = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-l") {
-            opt_l = 1;
-            opt_L = opt_A = opt_B = opt_c = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-q") {
-            opt_q = 1;
-            opt_A = opt_B = opt_c = opt_l = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-v") {
-            opt_v = 1;
-            argv[i] = 0;
-        } else if (argv[i] == "-c") {
-            opt_c = 1;
-            opt_A = opt_B = 0;
-            argv[i] = 0;
-        } else if (argv[i] == "-s") {
-            opt_s = 1;
-            argv[i] = 0;
-        } else if (argv[i] == "-e") {
+            break;
+        case "e":
             if (i + 1 == argc)
                 usage();
             patterns += ({ argv[i + 1] });
             argv[i + 1] = argv[i] = 0;
-        } else {
+            break;
+        default:
             werror("invalid option: '%s'\n", argv[i]);
             usage();
         }
