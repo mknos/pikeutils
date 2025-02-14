@@ -11,7 +11,7 @@ int is_number(string arg) {
         arg = arg[1..];
     }
     Regexp digits = Regexp("^([0-9]+)");
-    array(string) wholepart = digits.split(arg);
+    array(string) wholepart = digits->split(arg);
     if (!arrayp(wholepart))
         return 0; // initial digits are required
     int i = strlen(wholepart[0]);
@@ -24,7 +24,7 @@ int is_number(string arg) {
         arg = arg[1..];
         if (strlen(arg) == 0)
             return 1; // saw +1.
-        fraction = digits.split(arg);
+        fraction = digits->split(arg);
         if (arrayp(fraction)) {
             i = strlen(fraction[0]);
             arg = arg[i..];
@@ -44,7 +44,7 @@ int is_number(string arg) {
             if (strlen(arg) == 0)
                 return 0; // +1.2e- invalid
         }
-        array(string) edigits = digits.split(arg);
+        array(string) edigits = digits->split(arg);
         if (!arrayp(edigits))
             return 0;
         i = strlen(edigits[0]);
