@@ -187,7 +187,7 @@ int main(int argc, array(string) argv) {
     }
 
     Regexp re = Regexp("^[0-9]+$");
-    if (!re.match(argv[1])) {
+    if (!re->match(argv[1])) {
         werror("width: expected an integer value\n");
         return 1;
     }
@@ -196,7 +196,7 @@ int main(int argc, array(string) argv) {
         werror("width: value too small (minimum %d)\n", MIN_WIDTH);
         return 1;
     }
-    if (!re.match(argv[2])) {
+    if (!re->match(argv[2])) {
         werror("height: expected an integer value\n");
         return 1;
     }
