@@ -226,7 +226,7 @@ string to_u1(string data) {
 
 int format_file(Stdio.File f, int offset, string fmt) {
     int chunk_size = 16;
-    while (!f.eof) {
+    while (1) {
         string data = f->read(chunk_size);
         int len = strlen(data);
         if (len == 0)
