@@ -58,7 +58,7 @@ int main(int argc, array(string) argv) {
         if (argc < 3)
             usage();
         Regexp re = Regexp("^[0-9]+$");
-        if (!re.match(argv[2])) {
+        if (!re->match(argv[2])) {
             werror("strings: length argument '%s' not a number\n", argv[2]);
             return 1;
         }
