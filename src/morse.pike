@@ -59,7 +59,7 @@ array(string) line_words(string line) {
     string squash = "";
     Regexp sp = Regexp("[ \t]");
     foreach (line / 1, string c) {
-        if (sp.match(c)) {
+        if (sp->match(c)) {
             if (!in_space)
                 squash += " ";
             in_space = 1;
