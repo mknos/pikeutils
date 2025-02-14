@@ -17,7 +17,7 @@ string prompt(int length) {
         write("Enter your guess (" + length + " unique digits): ");
         guess = Stdio.stdin->gets();
         guess = String.trim_whites(guess);
-        if (!re.match(guess)) {
+        if (!re->match(guess)) {
             write("Not a number\n");
             continue;
         }
@@ -66,7 +66,7 @@ int main(int argc, array(string) argv) {
         usage();
     if (argc > 1) {
         Regexp re = Regexp("^[0-9]+$");
-        if (!re.match(argv[1])) {
+        if (!re->match(argv[1])) {
             werror("length must be an integer\n");
             return 1;
         }
