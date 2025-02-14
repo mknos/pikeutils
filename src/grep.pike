@@ -178,7 +178,7 @@ int main(int argc, array(string) argv) {
         if (arg[0] != '-')
             break;
         arg = arg[1..];
-        if (flags.match(arg)) {
+        if (flags->match(arg)) {
             foreach (arg / 1, string letter)
                 switch (letter) {
                 case "c":
@@ -240,7 +240,7 @@ int main(int argc, array(string) argv) {
                 num = argv[i + 1];
                 argv[i + 1] = 0;
             }
-            if (!num_re.match(num)) {
+            if (!num_re->match(num)) {
                 werror("invalid -A number\n");
                 usage();
             }
@@ -256,7 +256,7 @@ int main(int argc, array(string) argv) {
                 num = argv[i + 1];
                 argv[i + 1] = 0;
             }
-            if (!num_re.match(num)) {
+            if (!num_re->match(num)) {
                 werror("invalid -B number\n");
                 usage();
             }
@@ -272,7 +272,7 @@ int main(int argc, array(string) argv) {
                 num = argv[i + 1];
                 argv[i + 1] = 0;
             }
-            if (!num_re.match(num)) {
+            if (!num_re->match(num)) {
                 werror("invalid -C number\n");
                 usage();
             }
@@ -288,7 +288,7 @@ int main(int argc, array(string) argv) {
                 num = argv[i + 1];
                 argv[i + 1] = 0;
             }
-            if (!num_re.match(num)) {
+            if (!num_re->match(num)) {
                 werror("invalid -m number\n");
                 usage();
             }
