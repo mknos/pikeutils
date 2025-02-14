@@ -18,7 +18,7 @@ array(string) lines = ({ "" });
 
 array(string) lesc = ({
     "\\000", "\\001", "\\002", "\\003", "\\004", "\\005", "\\006", "\\a",
-    "\\b",   "\\t",   "\$\n",  "\\v",   "\\f",   "\\r",   "\\016", "\\017",
+    "\\b",   "\\t",   "$\n",   "\\v",   "\\f",   "\\r",   "\\016", "\\017",
     "\\020", "\\021", "\\022", "\\023", "\\024", "\\025", "\\026", "\\027",
     "\\030", "\\031", "\\032", "\\033", "\\034", "\\035", "\\036", "\\037",
     " ",     "!",     "\"",    "#",     "\\$",   "%",     "&",     "'",
@@ -617,7 +617,7 @@ int substitute(string cmd) {
     string part2 = cmd[0..(i-1)];
     Regexp re = Regexp(part1);
     for (i = start; i <= end; i++) {
-        string rep = re.replace(lines[i], part2);
+        string rep = re->replace(lines[i], part2);
         lines[i] = rep;
         modified = 1;
     }
@@ -665,7 +665,7 @@ string getaddr(string cmd) {
     }
     if (!found) {
         Regexp re = Regexp("^([0-9]+)");
-        array(string) cap = re.split(cmd);
+        array(string) cap = re->split(cmd);
         if (cap) {
             n = (int)cap[0];
             found = 1;
@@ -676,8 +676,8 @@ string getaddr(string cmd) {
 
     array(string) cap;
     do {
-        Regexp re = Regexp("^([\+\-])([0-9]+)");
-        cap = re.split(cmd);
+        Regexp re = Regexp("^([+-])([0-9]+)");
+        cap = re->split(cmd);
         if (cap) {
             int offset = (int)cap[1];
             if (cap[0] == "-")
@@ -961,7 +961,7 @@ int main(int argc, array(string) argv) {
         }
         argv[i] = 0;
     }
-    string file = 0;
+    string file;
     foreach (argv[1..], string arg) {
         if (!stringp(arg))
             continue;
