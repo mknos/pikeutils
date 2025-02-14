@@ -18,7 +18,7 @@ int readlist(string path) {
     while ((line = f->gets())) {
         if (strlen(line) != 5)
             continue;
-        if (re.match(line))
+        if (re->match(line))
             continue;
         words += ({ line });
     }
@@ -49,7 +49,7 @@ string nextguess() {
     write("Guess: ");
     string s = Stdio.stdin->gets();
     Regexp re = Regexp("[^A-Za-z]");
-    if (strlen(s) != 5 || re.match(s)) {
+    if (strlen(s) != 5 || re->match(s)) {
         werror("Invalid guess.\n");
         return 0;
     }
