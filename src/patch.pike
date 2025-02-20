@@ -7,10 +7,10 @@ mapping parse_diff_cmd(string s) {
     Regexp num_re = Regexp("^([0-9]+)");
     Regexp cmd_re = Regexp("^[acd]");
     mapping hunk = ([ ]);
-    array addr1 = num_re.split(s);
+    array addr1 = num_re->split(s);
     if (!arrayp(addr1))
         return 0; // "foo"
-    hunk["start"] = hunk["end"] = (int)addr1[0];
+    hunk["start"] = (int)addr1[0];
     i = strlen(addr1[0]);
     s = s[i..];
     if (strlen(s) == 0)
@@ -19,20 +19,29 @@ mapping parse_diff_cmd(string s) {
         s = s[1..];
         if (strlen(s) == 0)
             return 0; //  "123,"
-        array addr2 = num_re.split(s);
+        array addr2 = num_re->split(s);
         if (!arrayp(addr2)) // "123,foo"
             return 0;
         hunk["end"] = (int)addr2[0];
         i = strlen(addr2[0]);
         s = s[i..];
     }
-    if (!cmd_re.match(s))
+    if (!cmd_re->match(s))
         return 0; // bad verb: "1,2x"
     hunk["type"] = s[0..0];
     s = s[1..];
     if (strlen(s) == 0)
         return 0; // missing suffix: "1,2d"
-    array addr3 = num_re.split(s);
+    if (hunk["type"] == "a") {
+        if (hunk["end"]) {
+            werror("patch: address range forbidden in Add hunk\n");
+            exit(1);
+        }
+    } else { // type c or d
+        if (!hunk["end"])
+            hunk["end"] = hunk["start"];
+    }
+    array addr3 = num_re->split(s);
     if (!arrayp(addr3))
         return 0; // "1,2aX"
     hunk["ostart"] = hunk["oend"] = (int)addr3[0];
@@ -44,7 +53,7 @@ mapping parse_diff_cmd(string s) {
         s = s[1..];
         if (strlen(s) == 0)
             return 0; // "1,2a3,"
-        array addr4 = num_re.split(s);
+        array addr4 = num_re->split(s);
         if (!arrayp(addr4))
             return 0; // "1,2a2,X"
         hunk["oend"] = (int)addr4[0];
@@ -130,8 +139,7 @@ int main(int argc, array(string) argv) {
                 continue;
         }
         if (hunk < sizeof(hunks) && hunks[hunk]["type"] == "a") {
-            int j = max(hunks[hunk]["start"], hunks[hunk]["end"]);
-            j++; // append after line i
+            int j = hunks[hunk]["start"] + 1; // append after start line
             if (i == j) {
                 foreach (hunks[hunk]["olines"], string oline) {
                     write("%s\n", oline);
