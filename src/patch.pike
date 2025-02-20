@@ -38,6 +38,10 @@ mapping parse_diff_cmd(string s) {
             exit(1);
         }
     } else { // type c or d
+        if (hunk["end"] && hunk["end"] < hunk["start"]) {
+            werror("patch: invalid address range\n"); // "2,1d"
+            exit(1);
+        }
         if (!hunk["end"])
             hunk["end"] = hunk["start"];
     }
