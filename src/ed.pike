@@ -544,10 +544,14 @@ int copyover(string arg, int delete) {
         int j = st + count;
         lines = lines[0..i] + lines[j..];
     }
-    curln = target + count;
-    modified = 1;
+    if (delete && target > end) // move past end of range
+        curln = target;
+    else
+        curln = target + count;
+
     if (curln > maxline())
         curln = maxline();
+    modified = 1;
     return 1;
 }
 
